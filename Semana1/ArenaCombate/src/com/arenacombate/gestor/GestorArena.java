@@ -1,6 +1,7 @@
 package com.arenacombate.gestor;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import com.arenacombate.model.Personaje;
@@ -20,27 +21,33 @@ public class GestorArena {
         return instancia;
     }
     
-    public List<Personaje> ObtenerPersonajes() {
+    public List<Personaje> obtenerRanking(Comparator<Personaje> criterio) {
+        List<Personaje> ranking = obtenerPersonajes();
+        ranking.sort(criterio);
+        return ranking;
+    }
+    
+    public List<Personaje> obtenerPersonajes() {
     	return new ArrayList<>(personajes);
     }
     
-    public void AñadirPersonaje(Personaje personaje) {
+    public void añadirPersonaje(Personaje personaje) {
     	if(personaje != null) {
     		personajes.add(personaje);
     	}
     }
     
-    public void AñadirPersonajes(List<Personaje> personajes) {
-    	personajes.stream()
+    public void añadirPersonajes(List<Personaje> nuevosPersonajes) {
+    	nuevosPersonajes.stream()
         .filter(e -> e != null)
         .forEach(this.personajes::add);
     }
     
-    public void EliminarPersonajes() {
+    public void eliminarPersonajes() {
     	this.personajes.clear();
     }
     
-    public void EliminarPersonaje(int index) {
+    public void eliminarPersonaje(int index) {
     	this.personajes.remove(index);
     }
 }

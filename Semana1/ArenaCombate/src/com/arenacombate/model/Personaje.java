@@ -2,7 +2,7 @@ package com.arenacombate.model;
 
 import com.arenacombate.combate.Combatiente;
 
-public abstract class Personaje implements Combatiente {
+public abstract class Personaje implements Combatiente, Comparable<Personaje> {
 	private Inventario<Item> inventario;
 	private Arma arma;
 	private double vida;
@@ -24,9 +24,9 @@ public abstract class Personaje implements Combatiente {
 	public int getNivel() {
 		return nivel;
 	}
-
-	public void setInventario(Inventario<Item> inventario) {
-		this.inventario = inventario;
+	
+	public String getNombre() {
+		return nombre;
 	}
 
 	public void setArma(Arma arma) {
@@ -37,16 +37,12 @@ public abstract class Personaje implements Combatiente {
 		this.vida = vida;
 	}
 
-	public void setNivel(int nivel) {
+	protected void setNivel(int nivel) {
 		this.nivel = nivel;
 	}
-
-	public void setNombre(String nombre) {
-		this.nombre = nombre;
-	}
-
-	public String getNombre() {
-		return nombre;
+	
+	public int compareTo(Personaje otro) {
+		return otro.getNivel() - this.getNivel();
 	}
 
 	Personaje(double vida, int nivel, String nombre, Arma arma){
@@ -54,7 +50,7 @@ public abstract class Personaje implements Combatiente {
 		this.nivel = nivel;
 		this.nombre = nombre;
 		this.arma = arma;
-		this.inventario = new Inventario();
+		this.inventario = new Inventario<>();
 	}
 	
 	public abstract void atacar(Personaje objetivo);
