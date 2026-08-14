@@ -28,14 +28,13 @@ public class Guerrero extends Personaje{
 		double daño = cantidad * (1 - REDUCCION_DE_DANO); 
 		double vida = this.getVida();
 		
-		this.setVida(vida - daño);
-		
+		this.setVida(Math.max(0, vida - daño) );
 	}
 
 	@Override
-	public void estaVivo() {
-		// TODO Auto-generated method stub
-		
+	public boolean estaVivo() {
+ 		
+		return this.getVida() > 0;
 	}
 
 }

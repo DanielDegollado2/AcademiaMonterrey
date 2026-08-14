@@ -3,7 +3,7 @@ package com.arenacombate.model;
 import com.arenacombate.combate.EstrategiaDeAtaque;
 
 public class Arquero extends Personaje {
-	private static final double REDUCCION_DE_DAÑO = 0.12;
+	private static final double REDUCCION_DE_DANO = 0.12;
 	private EstrategiaDeAtaque estrategiaDeAtaque;
 	
 	public Arquero(int vida, int nivel, String nombre, Arma arma, EstrategiaDeAtaque estrategiaDeAtaque) {
@@ -15,26 +15,25 @@ public class Arquero extends Personaje {
 	public
 	void atacar(Personaje objetivo) {
 		this.estrategiaDeAtaque.ataque(this, objetivo);
-		
 	}
 
 	@Override
 	public
 	void usarHabilidad() {
-		// TODO Auto-generated method stub
-		
+		// TODO Auto-generated method stub	
 	}
 
 	@Override
 	public void recibirDaño(double cantidad) {
-		// TODO Auto-generated method stub
+		double daño = cantidad * (1 - REDUCCION_DE_DANO); 
+		double vida = this.getVida();
 		
+		this.setVida(Math.max(0, vida - daño) );
 	}
 
 	@Override
-	public void estaVivo() {
-		// TODO Auto-generated method stub
-		
+	public boolean estaVivo() {
+		return this.getVida() > 0;
 	}
 
 }
