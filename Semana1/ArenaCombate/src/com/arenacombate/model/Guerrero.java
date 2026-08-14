@@ -33,7 +33,6 @@ public class Guerrero extends Personaje{
 
 	@Override
 	public boolean estaVivo() {
- 		
 		return this.getVida() > 0;
 	}
 

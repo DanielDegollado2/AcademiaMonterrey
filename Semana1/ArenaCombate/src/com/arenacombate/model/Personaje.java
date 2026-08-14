@@ -3,13 +3,13 @@ package com.arenacombate.model;
 import com.arenacombate.combate.Combatiente;
 
 public abstract class Personaje implements Combatiente {
-	private Inventario inventario;
+	private Inventario<Item> inventario;
 	private Arma arma;
 	private double vida;
 	private int nivel;
 	private String nombre;
 	
-	public Inventario getInventario() {
+	public Inventario<Item> getInventario() {
 		return inventario;
 	}
 
@@ -25,7 +25,7 @@ public abstract class Personaje implements Combatiente {
 		return nivel;
 	}
 
-	public void setInventario(Inventario inventario) {
+	public void setInventario(Inventario<Item> inventario) {
 		this.inventario = inventario;
 	}
 
