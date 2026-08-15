@@ -8,6 +8,16 @@ public abstract class Personaje implements Combatiente, Comparable<Personaje> {
 	private double vida;
 	private int nivel;
 	private String nombre;
+	private final EstadisticasBase estadisticasBase;
+	
+	Personaje(double vida, int nivel, String nombre, Arma arma, EstadisticasBase estadisticasBase){
+		this.vida = vida;
+		this.nivel = nivel;
+		this.nombre = nombre;
+		this.arma = arma;
+		this.inventario = new Inventario<>();
+		this.estadisticasBase = estadisticasBase;
+	}
 	
 	public Inventario<Item> getInventario() {
 		return inventario;
@@ -28,6 +38,10 @@ public abstract class Personaje implements Combatiente, Comparable<Personaje> {
 	public String getNombre() {
 		return nombre;
 	}
+	
+	public EstadisticasBase getEstadisticasBase() {
+		return estadisticasBase;
+	}
 
 	public void setArma(Arma arma) {
 		this.arma = arma;
@@ -44,13 +58,23 @@ public abstract class Personaje implements Combatiente, Comparable<Personaje> {
 	public int compareTo(Personaje otro) {
 		return otro.getNivel() - this.getNivel();
 	}
+	
+	public void curar(double cantidad) {
+		this.vida = Math.min(100, this.getVida() + cantidad);
+	}
+	
+	@Override
+	public void recibirDaño(double cantidad) {
+		double reduccionDeDaño = Math.min(1, this.getEstadisticasBase().getDefensa());
+		double daño = cantidad * reduccionDeDaño; 
+		double vida = this.getVida();
+		
+		this.setVida(Math.max(0, vida - daño) );
+	}
 
-	Personaje(double vida, int nivel, String nombre, Arma arma){
-		this.vida = vida;
-		this.nivel = nivel;
-		this.nombre = nombre;
-		this.arma = arma;
-		this.inventario = new Inventario<>();
+	@Override
+	public boolean estaVivo() {
+		return this.getVida() > 0;
 	}
 	
 	public abstract void atacar(Personaje objetivo);

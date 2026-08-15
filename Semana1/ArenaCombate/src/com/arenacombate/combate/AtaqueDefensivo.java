@@ -15,6 +15,10 @@ public class AtaqueDefensivo implements EstrategiaDeAtaque {
 		if(rand.nextInt(100) <= PROBABILIDAD_CONTRAATAQUE ) {
 			atacante.recibirDaño(DAÑO_RECIBIDO);
 		}
-		objetivo.recibirDaño(DAÑO_EFECTUADO);
+		
+		double bonoFuerza = Math.min(25, atacante.getEstadisticasBase().getFuerza());
+		double dañoFinalEfectuado = DAÑO_EFECTUADO + bonoFuerza;
+		
+		objetivo.recibirDaño(dañoFinalEfectuado);
 	}
 }

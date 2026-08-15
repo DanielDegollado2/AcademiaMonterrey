@@ -5,8 +5,7 @@ public class PocionVida implements Item {
 	
 	@Override
 	public void usar(Personaje portador) {
-		double nuevaVida = Math.min(100, portador.getVida() + VIDA_AGREGADA);
-		portador.setVida(nuevaVida);
+		portador.curar(VIDA_AGREGADA);
 	}
 
 }
