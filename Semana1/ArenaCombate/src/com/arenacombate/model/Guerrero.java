@@ -6,8 +6,8 @@ public class Guerrero extends Personaje{
 
 	private EstrategiaDeAtaque estrategiaDeAtaque;
 	
-	public Guerrero(double vida, int nivel, String nombre, Arma arma, EstrategiaDeAtaque estrategiaDeAtaque, EstadisticasBase estadisticasBase) {
-		super(vida, nivel, nombre, arma, estadisticasBase);
+	public Guerrero(double vida, int nivel, String nombre, EstrategiaDeAtaque estrategiaDeAtaque, EstadisticasBase estadisticasBase) {
+		super(vida, nivel, nombre, estadisticasBase);
 		this.estrategiaDeAtaque = estrategiaDeAtaque;
 	}
 

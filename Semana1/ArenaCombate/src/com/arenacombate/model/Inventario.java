@@ -23,4 +23,13 @@ public class Inventario<T extends Item> {
 		item.usar(portador);
 		items.remove(index);
 	}
+	
+	@Override
+	public String toString() {
+	    StringBuilder sb = new StringBuilder();
+	    for (T item : items) {
+	        sb.append("- ").append(item.getClass().getSimpleName()).append("\n");
+	    }
+	    return sb.toString();
+	}
 }

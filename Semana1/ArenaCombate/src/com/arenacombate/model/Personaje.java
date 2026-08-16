@@ -4,27 +4,21 @@ import com.arenacombate.combate.Combatiente;
 
 public abstract class Personaje implements Combatiente, Comparable<Personaje> {
 	private Inventario<Item> inventario;
-	private Arma arma;
 	private double vida;
 	private int nivel;
 	private String nombre;
 	private final EstadisticasBase estadisticasBase;
 	
-	Personaje(double vida, int nivel, String nombre, Arma arma, EstadisticasBase estadisticasBase){
+	Personaje(double vida, int nivel, String nombre, EstadisticasBase estadisticasBase){
 		this.vida = vida;
 		this.nivel = nivel;
 		this.nombre = nombre;
-		this.arma = arma;
 		this.inventario = new Inventario<>();
 		this.estadisticasBase = estadisticasBase;
 	}
 	
 	public Inventario<Item> getInventario() {
 		return inventario;
-	}
-
-	public Arma getArma() {
-		return arma;
 	}
 
 	public double getVida() {
@@ -41,10 +35,6 @@ public abstract class Personaje implements Combatiente, Comparable<Personaje> {
 	
 	public EstadisticasBase getEstadisticasBase() {
 		return estadisticasBase;
-	}
-
-	public void setArma(Arma arma) {
-		this.arma = arma;
 	}
 
 	protected void setVida(double vida) {
