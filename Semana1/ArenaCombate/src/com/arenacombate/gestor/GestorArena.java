@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.arenacombate.model.Personaje;
 
-public class GestorArena {
+public final class GestorArena {
 	private static GestorArena instancia;
     private List<Personaje> personajes;
 
