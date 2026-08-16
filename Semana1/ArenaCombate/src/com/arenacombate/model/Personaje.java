@@ -78,5 +78,5 @@ public abstract class Personaje implements Combatiente, Comparable<Personaje> {
 	}
 	
 	public abstract void atacar(Personaje objetivo);
-	public abstract void usarHabilidad();
+	public abstract void usarHabilidad(Personaje objetivo);
 }

@@ -3,10 +3,11 @@ package com.arenacombate.model;
 import com.arenacombate.combate.EstrategiaDeAtaque;
 
 public class Mago extends Personaje {
+	private static final double VIDA_CURADA = 15;
 
 	private EstrategiaDeAtaque estrategiaDeAtaque;
 	
-	public Mago(int vida, int nivel, String nombre, Arma arma, EstrategiaDeAtaque estrategiaDeAtaque, EstadisticasBase estadisticasBase) {
+	public Mago(double vida, int nivel, String nombre, Arma arma, EstrategiaDeAtaque estrategiaDeAtaque, EstadisticasBase estadisticasBase) {
 		super(vida, nivel, nombre, arma, estadisticasBase);
 		this.estrategiaDeAtaque = estrategiaDeAtaque;
 	}
@@ -17,7 +18,9 @@ public class Mago extends Personaje {
 	}
 
 	@Override
-	public void usarHabilidad() {
-		// TODO Auto-generated method stub
+	public void usarHabilidad(Personaje objetivo) {
+		if(objetivo != this) {
+			objetivo.curar(VIDA_CURADA);
+		}
 	}
 }

@@ -17,8 +17,8 @@ public class Guerrero extends Personaje{
 	}
 
 	@Override
-	public void usarHabilidad() {
-		// TODO Auto-generated method stub
-		
+	public void usarHabilidad(Personaje objetivo) {
+		double daño = this.getEstadisticasBase().getFuerza() * 2;
+		objetivo.recibirDaño(daño);
 	}
 }
