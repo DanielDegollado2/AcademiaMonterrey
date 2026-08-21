@@ -1,0 +1,78 @@
+PROYECTO 16 — CRUD REST de empleados con MongoDB
+================================================
+Mismo API que el proyecto 15, cambiando MySQL por MongoDB
+y la capa DAO por un MongoRepository de Spring Data.
+
+
+1) LEVANTAR MONGODB
+-------------------
+docker run --name mongo-8 -p 27017:27017 -d mongo:8
+
+Las siguientes veces basta con:
+docker start mongo-8
+
+NO HAY SCRIPTS SQL.
+No hay que crear usuario, ni permisos, ni base de datos, ni tabla.
+MongoDB standalone no trae autenticacion por defecto, y crea
+la base de datos y la coleccion solas en el primer insert.
+
+
+2) CLIENTE PARA VER LOS DATOS (opcional)
+----------------------------------------
+a) mongosh -> CLI, ya viene dentro de la imagen de mongo:
+   docker exec -it mongo-8 mongosh employee_directory
+   db.employees.find()
+
+b) mongo-express -> equivalente de phpMyAdmin, corre en Docker.
+   Requiere una red propia: en la red "bridge" por defecto los
+   contenedores NO se resuelven por nombre.
+
+   docker network create mongo-net
+   docker network connect mongo-net mongo-8
+
+   docker run --name mongo-express --network mongo-net -p 8082:8081 \
+     -e ME_CONFIG_MONGODB_URL="mongodb://mongo-8:27017/" \
+     -e ME_CONFIG_BASICAUTH=false \
+     -d mongo-express
+
+   Abrir http://localhost:8082
+
+   OJO CON EL PUERTO: mongo-express escucha en el 8081 DENTRO del
+   contenedor, que es el mismo puerto de esta aplicacion. Por eso se
+   publica en el 8082 del host (-p 8082:8081). Si lo publicas en 8081
+   choca con la app.
+
+   Dia a dia:  docker start mongo-express  /  docker stop mongo-express
+
+c) MongoDB Compass -> app de escritorio, no Docker. Es la mas completa.
+   Cadena de conexion: mongodb://localhost:27017
+
+
+3) ARRANCAR LA APLICACION
+-------------------------
+./mvnw spring-boot:run
+
+Escucha en el puerto 8081, NO en el 8080.
+Se eligio 8081 a proposito para poder correr al mismo tiempo
+el proyecto 15 (MySQL, puerto 8080) y compararlos lado a lado.
+
+http://localhost:8081/api/employees
+
+
+4) PROBAR LOS ENDPOINTS
+-----------------------
+Guia completa en la carpeta guias/
+Script automatizado:  ./guias/test-endpoints.sh
+
+
+5) QUE CAMBIO RESPECTO AL PROYECTO 15
+-------------------------------------
+- pom.xml: spring-boot-starter-data-jpa + mysql-connector-j
+           -> spring-boot-starter-data-mongodb
+- Employee: @Entity/@Table -> @Document, @Id de Spring Data,
+            sin @Column, sin @GeneratedValue
+- El id paso de int a String (ObjectId hexadecimal de 24 caracteres)
+- Se borro el paquete dao/ completo (EmployeeDAO + EmployeeDAOJpaImpl)
+- Se agrego repository/EmployeeRepository extends MongoRepository
+- Se quito @Transactional del servicio
+- setId(0) -> setId(null) en el POST
