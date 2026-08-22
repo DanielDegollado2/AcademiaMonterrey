@@ -88,4 +88,9 @@ public class FacturaServiceImpl implements FacturaService {
 	        throw new RuntimeException("No se encontro el pedido con la id- " + pedidoId);
 	    }
 	}
+
+	@Override
+	public void borrar(int id) {
+		facturaRepository.deleteById(id);
+	}
 }

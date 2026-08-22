@@ -86,5 +86,10 @@ public class ClienteServiceImpl implements ClienteService {
 		 
 		 return pedidoRepository.findByClienteId(clienteId);
 	}
+
+	@Override
+	public void borrar(int id) {
+		clienteRepository.deleteById(null);;
+	}
 	
 }

@@ -15,4 +15,6 @@ public interface PedidoService {
 	 Pedido cambiarEstado(int id, EstadoPedido nuevoEstado);
 	 
 	 List<Pedido> obtenerPorClienteId(int clienteId);
+	 
+	 void borrar(int id);
 }

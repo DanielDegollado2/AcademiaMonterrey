@@ -82,4 +82,10 @@ public class PedidoServiceImpl implements PedidoService {
 		return pedidoRepository.findByClienteId(clienteId);
 	}
 
+	@Override
+	public void borrar(int id) {
+		pedidoRepository.deleteById(id);
+		
+	}
+
 }

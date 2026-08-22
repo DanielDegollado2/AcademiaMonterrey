@@ -17,4 +17,6 @@ public interface ClienteService {
 	 Cliente obtenerPorCorreo(String email);
 	 
 	 List<Pedido> obtenerHistorialPedidos(int clienteId);
+	 
+	 void borrar(int id);
 }

@@ -9,4 +9,5 @@ public interface FacturaService {
 	Factura obtenerPorId(int id);
 	Factura obtenerPorPedidoId(int pedidoId);
 	Factura generarFactura(int pedidoId);
+	void borrar(int id);
 }
