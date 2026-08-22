@@ -23,6 +23,9 @@ public class Cliente {
 	@Column(name="contrasena")
 	private String contrasena;
 	
+	@Column(name="correo")
+	private String correo;
+	
 	@Column(name="telefono")
 	private Long telefono;
 	
@@ -79,6 +82,14 @@ public class Cliente {
 
 	public void setContraseña(String contrasena) {
 		this.contrasena = contrasena;
+	}
+	
+	public String getCorreo() {
+		return correo;
+	}
+
+	public void setCorreo(String correo) {
+		this.correo = correo;
 	}
 
 	public Long getTelefono() {
