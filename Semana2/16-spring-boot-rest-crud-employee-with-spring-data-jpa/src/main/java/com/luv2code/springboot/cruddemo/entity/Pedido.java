@@ -2,6 +2,8 @@ package com.luv2code.springboot.cruddemo.entity;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -30,6 +32,7 @@ public class Pedido {
 	
 	@ManyToOne()
 	@JoinColumn(name="id_cliente")
+	@JsonBackReference
 	private Cliente cliente;
 
 	public Pedido() {

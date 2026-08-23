@@ -72,8 +72,6 @@ public class ClienteRestController {
     @PostMapping("/clientes")
     public Cliente agregarCliente(@RequestBody Cliente cliente) {
 
-    	cliente.setId(0);
-
         Cliente dbCliente = clienteService.guardar(cliente);
 
         return dbCliente;

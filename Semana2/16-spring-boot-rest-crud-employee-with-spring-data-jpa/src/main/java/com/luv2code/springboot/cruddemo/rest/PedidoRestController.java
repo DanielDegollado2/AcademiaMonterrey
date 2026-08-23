@@ -56,8 +56,6 @@ public class PedidoRestController {
     @PostMapping("/pedidos")
     public Pedido agregarPedido(@RequestBody Pedido pedido) {
 
-    	pedido.setId(0);
-
     	Pedido dbPedido = pedidoService.crearPedido(pedido);
 
         return dbPedido;

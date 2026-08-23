@@ -89,7 +89,7 @@ public class ClienteServiceImpl implements ClienteService {
 
 	@Override
 	public void borrar(int id) {
-		clienteRepository.deleteById(null);;
+		clienteRepository.deleteById(id);
 	}
 	
 }

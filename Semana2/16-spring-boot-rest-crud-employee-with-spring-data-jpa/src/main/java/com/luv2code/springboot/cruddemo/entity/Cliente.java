@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -20,11 +22,11 @@ public class Cliente {
 	@Column(name="apellido")
 	private String apellido;
 	
-	@Column(name="contrasena")
-	private String contrasena;
-	
 	@Column(name="correo")
 	private String correo;
+	
+	@Column(name="contrasena")
+	private String contrasena;
 	
 	@Column(name="telefono")
 	private Long telefono;
@@ -39,6 +41,7 @@ public class Cliente {
 	private boolean activo;
 	
 	@OneToMany(mappedBy= "cliente")
+	@JsonManagedReference
 	private List<Pedido> pedidos = new ArrayList<>();
 	
 	public Cliente() {
@@ -56,11 +59,11 @@ public class Cliente {
 		this.direccionEnvio = direccionEnvio;
 	}
 
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 	
@@ -80,11 +83,11 @@ public class Cliente {
 		this.apellido = apellido;
 	}
 
-	public String getContraseña() {
+	public String getContrasena() {
 		return contrasena;
 	}
 
-	public void setContraseña(String contrasena) {
+	public void setContrasena(String contrasena) {
 		this.contrasena = contrasena;
 	}
 	
