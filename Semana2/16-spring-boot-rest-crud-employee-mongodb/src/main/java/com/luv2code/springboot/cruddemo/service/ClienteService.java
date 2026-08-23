@@ -8,15 +8,15 @@ import com.luv2code.springboot.cruddemo.entity.Pedido;
 public interface ClienteService {
 	 List<Cliente> obtenerTodos();
 
-	 Cliente obtenerPorId(int id);
+	 Cliente obtenerPorId(String id);
 
 	 Cliente guardar(Cliente cliente);
 
-	 void desactivarPorId(int id);
+	 void desactivarPorId(String id);
 	 
 	 Cliente obtenerPorCorreo(String email);
 	 
-	 List<Pedido> obtenerHistorialPedidos(int clienteId);
+	 List<Pedido> obtenerHistorialPedidos(String clienteId);
 	 
-	 void borrar(int id);
+	 void borrar(String id);
 }

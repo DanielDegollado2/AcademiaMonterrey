@@ -8,13 +8,13 @@ import com.luv2code.springboot.cruddemo.entity.Pedido;
 public interface PedidoService {
 	 List<Pedido> obtenerTodos();
 
-	 Pedido obtenerPorId(int id);
+	 Pedido obtenerPorId(String id);
 
 	 Pedido crearPedido(Pedido pedido);
 
-	 Pedido cambiarEstado(int id, EstadoPedido nuevoEstado);
+	 Pedido cambiarEstado(String id, EstadoPedido nuevoEstado);
 	 
-	 List<Pedido> obtenerPorClienteId(int clienteId);
+	 List<Pedido> obtenerPorClienteId(String clienteId);
 	 
-	 void borrar(int id);
+	 void borrar(String id);
 }
