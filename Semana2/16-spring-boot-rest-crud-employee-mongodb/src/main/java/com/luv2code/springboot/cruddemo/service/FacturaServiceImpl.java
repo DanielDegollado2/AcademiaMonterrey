@@ -4,12 +4,14 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.luv2code.springboot.cruddemo.entity.Factura;
 import com.luv2code.springboot.cruddemo.entity.Pedido;
 import com.luv2code.springboot.cruddemo.repository.FacturaRepository;
 import com.luv2code.springboot.cruddemo.repository.PedidoRepository;
 
+@Service
 public class FacturaServiceImpl implements FacturaService {
 	private FacturaRepository facturaRepository;
 	private PedidoRepository pedidoRepository;
@@ -77,7 +79,7 @@ public class FacturaServiceImpl implements FacturaService {
 			factura.setSubtotal(subtotal);
 			factura.setImpuestos(impuestos);
 			factura.setTotal(total);
-			factura.setPedido(pedido.getId());
+			factura.setPedidoId(pedidoId);
 			
 			return facturaRepository.save(factura);
 	    }

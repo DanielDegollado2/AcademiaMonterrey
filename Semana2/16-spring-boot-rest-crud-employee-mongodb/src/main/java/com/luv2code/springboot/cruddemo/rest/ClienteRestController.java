@@ -37,7 +37,7 @@ public class ClienteRestController {
     }
 
     @GetMapping("/clientes/{clienteId}")
-    public Cliente obtenerClientePorId(@PathVariable int clienteId) {
+    public Cliente obtenerClientePorId(@PathVariable String clienteId) {
 
         Cliente cliente = clienteService.obtenerPorId(clienteId);
 

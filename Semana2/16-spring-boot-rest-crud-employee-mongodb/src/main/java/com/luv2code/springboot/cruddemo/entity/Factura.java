@@ -22,7 +22,7 @@ public class Factura {
 		
 	}
 	
-	public Factura(Long numeroFactura, double subtotal, double impuestos, double total, String pedidoId) {
+	public Factura(Long numeroFactura, Double subtotal, Double impuestos, Double total, String pedidoId) {
 		super();
 		this.numeroFactura = numeroFactura;
 		this.subtotal = subtotal;
@@ -67,11 +67,11 @@ public class Factura {
 		this.total = total;
 	}
 
-	public String getPedido() {
+	public String getPedidoId() {
 		return pedidoId;
 	}
 
-	public void setPedido(String pedidoId) {
+	public void setPedidoId(String pedidoId) {
 		this.pedidoId = pedidoId;
 	}
 	
