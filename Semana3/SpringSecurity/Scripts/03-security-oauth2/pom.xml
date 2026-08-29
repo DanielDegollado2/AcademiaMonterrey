@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.luv2code.springboot</groupId>
-	<artifactId>cruddatajpa</artifactId>
+	<artifactId>security-oauth2</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>cruddatajpa</name>
-	<description>Demo project for Spring Boot</description>
+	<name>security-oauth2</name>
+	<description>Seguridad REST con OAuth2 y Keycloak - Spring Security 7</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -31,8 +31,14 @@
 	</properties>
 	<dependencies>
 		<dependency>
-    		<groupId>org.springframework.boot</groupId>
-    		<artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<!-- Trae el soporte de JWT (firmar, validar, leer claims). En Spring Boot 4
+		     este starter se llama ...-security-oauth2-...; en Boot 3 era sin "security". -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
