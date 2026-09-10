@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+ <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd"> 
+ <suite name="Automation Practice - POM" parallel="false"> 
+     <listeners> 
+         <listener class-name="listeners.ScreenshotListener"/> 
+     </listeners> 
+     <test name="Recorrido completo"> 
+         <classes> 
+             <class name="tests.PersonasTest"/> 
+             <class name="tests.EmpresasTest"/> 
+             <class name="tests.PymesTest"/> 
+             <class name="tests.BancaPrivadaTest"/> 
+             <class name="tests.AcercaDelBancoTest"/> 
+         </classes> 
+     </test> 
+ </suite> 
