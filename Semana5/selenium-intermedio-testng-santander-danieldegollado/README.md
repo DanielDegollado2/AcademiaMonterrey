@@ -69,7 +69,11 @@ Proyecto basado en la estructura clara del framework POM de referencia:
 ## Reportes
 Después de correr los tests, se genera una carpeta llamada `test-output` donde se pueden encontrar diferentes archivos donde se observa cuales fueron los resultados de la ejecución. Los resultados se pueden observar en: 
 - `test-output/index.html`: Muestra los tests que corrieron, en que orden lo hicieron, el tiempo que tardaron y si pasaron o no
+
+![Reporte de TestNG](docs/images/reporteIndexHTML.png)
 - `test-output/emailable-report.html`: Reporte compacto, esta pensado para compartir por correo o adjuntar directamente. Resume resultados, duración y estado de cada test.
+
+![Reporte Emailable de TestNG](docs/images/emailableReport.png)
 - `test-output/screenshots/`: Capturas de pantalla generadas automáticamente por `ScreenshotListener`, sirve para observar el estado visual de la página cuando algún test falla
 
 ## Ejecutar pruebas en Eclipse
