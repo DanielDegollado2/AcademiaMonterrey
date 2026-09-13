@@ -30,7 +30,7 @@ Se crea una instancia EC2 siguiendo la ruta: Barra de búsqueda → `EC2` → en
 
 ![Creacion de key pair (login)](./docs/images/key-pair.png)
 
-- Network settings: Creamos un security group con una regla de tipo SSH con un source type de My Ip y otra de tipo Custom TCP. De esta forma solo mi ip podrá conectarse a la instancia EC2 mediante SSH y todo el mundo podrá acceder al puerto 8080. Si en source type hubiera elegido Anywhere (0.0.0.0/0) en lugar de My Ip, la puerta de mi instancia hubiera quedad abierta a cualquier IP de Internet y eso significa estar expuesto a ataques automatizados.
+- Network settings: Creamos un security group con una regla de tipo SSH con un source type de My Ip y otra de tipo Custom TCP. De esta forma solo mi ip podrá conectarse a la instancia EC2 mediante SSH y todo el mundo podrá acceder al puerto 8080. Si en el source type de SSH hubiera elegido Anywhere (0.0.0.0/0) en lugar de My Ip, la puerta de mi instancia hubiera quedado abierta a cualquier IP de Internet y eso significa estar expuesto a ataques automatizados.
 
 ![Creacion de security group](./docs/images/security-group-rules.png)
 
@@ -108,6 +108,7 @@ sha256sum ~/taskflow-api.jar
 Se ejecuta en la instancia EC2.
 
 Se producen dos hashes que deben ser idénticos. Asi es como sabemos que es el mismo archivo, no se recompiló nada.
+
 ![shasum](./docs/images/shasum.png)
 ![sha256sum](./docs/images/sha256sum.png)
 
@@ -136,7 +137,7 @@ La configuración de la base de datos es la siguiente:
 - Settings: Engine version PostgreSQL 18.3-R2
 - Credentials Settings: Se definió el master username y master password para acceder a la base de datos.
 - Instance configuration: Burstable classes (includes t classes)
-- Storage: General Purpose SSD (gp3) con una capacidad minima de almacenamiento de 20GB, se desactiva Enable storage autoscaling para que la capacidad de almacenaiento no aumente incluso despues de que se excedio la cantidad especificada.
+- Storage: General Purpose SSD (gp3) con una capacidad minima de almacenamiento de 20GB, se desactiva Enable storage autoscaling para que la capacidad de almacenamiento no aumente incluso despues de que se excedio la cantidad especificada.
 - Connectivity: Don't connect to an EC2 compute resource, se deniega el acceso publico y se crea un nuevo VPC security group con el nombre `taskflow-rds-sg`
 - Additional credentials settings (dentro de Credentials Settings): Password authentication
 Additional configuration: Initial database name: taskflow
@@ -330,7 +331,7 @@ aws dynamodb put-item --table-name taskflow-eventos --item '{
   "autor":     {"S": "ana"}
 }'
 ```
-Cada valor lleva su tipo `"S"` (equivalente a), este es básicamente el equivalente a String.
+Cada valor lleva su tipo `"S"`, este es básicamente el equivalente a String.
 
 Se agregan mas items. 
 
@@ -344,6 +345,15 @@ aws dynamodb put-item --table-name taskflow-eventos --item '{"taskId":{"S":"T-00
 Asi se ven todos los items creados desde la consola.
 
 ![eventos items](./docs/images/items.png)
+
+Para obtener un item por su id, se utiliza el comando:
+
+```bash
+aws dynamodb get-item --table-name taskflow-eventos \
+  --key '{"taskId":{"S":"T-001"},"fechaHora":{"S":"2026-09-08T09:15:00Z"}}'
+```
+
+Devuelve exactamente el evento con la `taskId` proporcionada, si no se proporciona `fechaHora` obtendremos el error `ValidationException: The provided key element does not match the schema`. Es necesario especificar tanto la Partition Key como la Sort Key.
 
 ### `Query` contra `Scan`
 Si ejecutamos un `query` por `taskId` con `--return-consumed-capacity TOTAL`.
@@ -394,3 +404,224 @@ Tambien hay una gran diferencia en el costo que tiene cada uno. Mientras mas ele
 
 Si se quiere hacer una busqueda, es mas recomendable utilizar `query`. En DynamoDB `scan` es una herramienta de
 mantenimiento y de exportación, no de consulta.
+
+### Modelar al revés
+En SQL se modelan las entidades y después las consultamos como queramos. DynamoDB hace este proceso al revés: Primero se escribe la lista de preguntas que va a hacer la aplicación y definimos la tabla en base a esa lista.
+
+Tomando como referencia la tabla de eventos, podemos definir las preguntas de lo que puede hacer la aplicación:
+
+| # | Necesito… | ¿Se puede con una tabla `taskflow-eventos`? | Clave que lo sirve |
+|---|---|---|---|
+| 1 | el historial completo de una tarea, en orden cronológico | Sí | `query` con `taskId = :t`. La sort key `fechaHora` lo devuelve ordenado: no hay que ordenar nada después |
+| 2 | el último evento de una tarea | Sí | el mismo `query` con `--no-scan-index-forward --max-items 1`: lee la partición al revés y para en el primero. No lee el resto |
+| 3 | los eventos de una tarea a partir de una fecha | Sí | `query` con `taskId = :t AND fechaHora >= :desde`. Para necesidades como esta es porque existe la `SortKey` |
+| 4 | todas las tareas que completó luis este mes | NO | ninguna. `autor` y `tipo` no son parte de la clave |
+
+Como se observa, una de las necesidades no es posible con la tabla `taskflow-eventos`, ya que DynamoDB solo puede buscar por clave, `autor` y `tipo` no son parte de esta.
+Una posible solución es crear un indice secundario global con `autor` como partition key y `fechaHora` como sort key. Aunque una solución asi costaría almacenamiento y escrituras aparte, es por eso que es necesario anticipar todos los patrones de acceso de la aplicación.
+
+## El pipeline
+Para el pipeline se definierón cuatro archivos (`buildspec.yml`, `appspec.yml`, `taskflow.service` y los `scripts/*.sh`), cada uno sera leído por una máquina distinta, sin necesidad de escribir comandos. 
+
+### Que hace cada pieza del pipeline
+- PC: Es desde donde haremos modificaciones a la aplicación Spring Boot taskflow-api, cuando tengamos todos los cambios listos se hace un `git push` al repo de Github.
+- Github: Al detectar cambios, le avisa al CodePipeline para que este encienda la cadena.
+- CodePipeline: Es el orquestador del flujo. Recibe un aviso de GitHub cuando hay un cambio de código, y coordina automáticamente las etapas: invoca a CodeBuild para compilar la aplicación Spring Boot (generando un .zip), almacena el artefacto en un bucket S3, y luego ejecuta el despliegue de la aplicación con CodeDeploy.
+- CodeBuild: el agente de CodeBuild lee el archivo `buildspec.yml`, va a la raíz del repositorio donde vive taskflow-api y construye el artefacto (archivo .zip). Este artefacto se sube al bucket S3.
+- Bucket S3: guarda el artefacto, el cual contiene un archivo .jar, el archivo `appspec.yml`, el archivo `taskflow.service`, y la carpeta `scripts/`. CodeDeploy descarga el .zip desde el bucket.
+- CodeDeploy: Descarga el artefacto guardado en el bucket S3. Pertenece a un grupo de despliegue, el cual esta configurado para buscar automáticamente que instancia EC2 es el destino del despliegue, usando un tag (en este caso es el tag que se le coloco a la instancia EC2 `taskflow-ec2`). CodeDeploy le manda el artefacto al CodeDeploy Agent de esa instancia EC2. Es importante que el archivo `appspec.yml` viaje dentro del artefacto, porque el CodeDeploy Agent lo lee dentro de la instancia EC2, para saber que archivos copiar y que scripts correr, en que orden.
+
+### Hooks
+Dentro del archivo `appspec.yml` hay una sección donde se especifican diferentes hooks: `ApplicationStop`, `AfterInstall`, `ApplicationStart` y `ValidateService`, dentro de ellos viven los comandos que se utiizaron el proyecto pasado para colocar taskflow-api en AWS de manera manual.
+
+| Comendo | Hoy vive en… | Hook |
+|---|---|---|
+| `mvn -q -DskipTests package` | `buildspec.yml` → `phases.build` | lo corre CodeBuild, no CodeDeploy |
+| `scp … taskflow-api.jar ec2-user@IP:~` | `appspec.yml` → `files` (source → destination) | la copia la hace el agente antes de `AfterInstall` |
+| El proceso se mataba con `kill` | `scripts/parar.sh` → `systemctl stop taskflow \|\| true` | `ApplicationStop` |
+| `chown` / permisos del jar | `scripts/permisos.sh` → `chown -R ec2-user …` + `daemon-reload` + `enable` | `AfterInstall` |
+| `nohup java -jar … &` | `scripts/arrancar.sh` → `systemctl start taskflow` (y `taskflow.service` con el `ExecStart`) | `ApplicationStart` |
+| abrir el navegador a ver si respondía | `scripts/verificar.sh` → `curl` a `/info` con reintentos | `ValidateService` |
+
+### Bucket de artefactos
+Se crea un bucket S3 con `Bucket Versioning` activado. Para crearlo hay que seguir la ruta: S3 → Create bucket.
+
+Configuración del bucket.
+- Bucket type: General purpose.
+- Bucket namespace: Global namespace.
+- Bucket name: taskflow-artefacto-danieldegollado2. 
+- Block Public Access settings: Block all public access.
+- Bucket Versioning: Activado.
+
+![s3 con bucket versioning](./docs/images/s3-bucket-bv.png)
+
+### Agente de CodeDeploy
+El agente tiene que instalarse dentro de la EC2, mediante SSH.
+
+```bash
+ssh -i taskflow-key.pem ec2-user@<IP nueva>
+```
+
+Para instalar el agente, se usan los comandos:
+
+```bash
+sudo dnf install -y ruby wget
+cd /home/ec2-user
+REGION=us-east-1        # ← us-east-2 si tu cuenta es de la experiencia nueva (Ohio)
+wget https://aws-codedeploy-$REGION.s3.$REGION.amazonaws.com/latest/install
+head -1 install         # tiene que decir: #!/usr/bin/env ruby
+chmod +x ./install
+sudo ./install auto
+sudo systemctl status codedeploy-agent
+```
+
+Cuando el agente se instala con exito, se observa el siguiente mensaje: 
+
+![code deploy agent corriendo](./docs/images/code-deploy-agent-success.png)
+
+El agente se queda esperando órdenes, CodeDeploy le entrega el archivo `appspec.yml` para que lo lea.
+
+### taskflow.service
+Este archivo define varias directivas, las principales son:
+- `WorkingDirectory=/opt/taskflow`: H2 escribe en ./data relativo a esto. Es donde el `appspec.yml` deja el jar. 
+- `SuccessExitStatus=143`: Sin esta linea, `systemctl stop` deja al servicio marcado como `failed`. Ahora Spring Boot sale con 143 cuando es detenido por `systemd`.
+- `Restart=always`: `systemd` levanta el proceso si llega a morir.
+- `User=ec2-user`: Es el mismo usuario por el que se entra mediante SSH, `permisos.sh` hace
+el chown de /opt/taskflow a ec2-user.
+
+### buildspec.yml
+El archivo contiene lo siguiente:
+- Runtime: CodeBuild no acepta solamente 21, el runtime es corretto21.
+- Nombre del jar: Maven genera `taskflow-api-3.0.0.jar`, `post_build` lo renombra a `target/taskflow-api.jar` porque el archivo `appspec.yml` no admite comodines en `files.source`.
+
+### appsec.yml
+Como se menciono anteriormente, `appsec.yml` contiene hooks que reemplazan los comandos manuales para levantar la aplicación en AWS.
+
+- `kill <PID>` se reemplaza por el script `parar.sh` del hook `ApplicationStop.`
+- `chown / permisos` se reemplaza por el script `permisos.sh` del hook `AfterInstall.`
+- `nohup java -jar … &` se reemplaza por el script `arrancar.sh` del hook `ApplicationStart`
+- Esto no es un comando pero abrir el navegador para ver si la aplicación respondía se reemplaza por el script `verificar.sh` del hook `ValidateService.`
+
+### Cablear el pipeline
+Primero debemos crear el rol de CodeDeploy, ruta: IAM → Roles → Create role. ´
+
+Configuracion del rol de CodeDeploy:
+- `Trusted entity type`: AWS service.
+- `Use case`: CodeDeploy.
+- `Permission policies`: AWSCodeDeployRole
+- `Role name`: taskflow-codedeploy-role
+
+![rol de codedeploy](./docs/images/tf-role-codedeploy.png)
+
+Ahora creamos la aplicación y el grupo de despliegue, ruta: Barra de búsqueda → CodeDeploy → menú izquierdo Applications → Create application.
+
+Configuración aplicación
+- `Application name`: taskflow
+- `Compute platform`: EC2/On-premises
+
+Configuración grupo de despliegue
+- `Deployment group name`: taskflow-dg
+- `Service role`: taskflow-codedeploy-role
+- `Deployment type`: In-place
+- `Environment configuration`: Amazon EC2 instances. En Tag group 1: Key = `Name`, `Value` = taskflow-ec2
+- `Agent configuration with AWS Systems Manager`: Never
+- `Deployment settings`: CodeDeployDefault.AllAtOnce
+- `Load balancer`: Desactivado
+
+![aplicacion y grupo de despiegue](./docs/images/application-dpg.png)
+
+Ahora creamos el pipeline, ruta: Barra de búsqueda → CodePipeline → Pipelines → Create pipeline.
+
+Estos fueron los pasos que se siguieron para la creación del pipeline:
+1. Choose creation option: se elige `Build custom pipeline` en vez de la plantilla `Push to ECR`.
+2. Pipeline settings: nombre `taskflow-pipeline`, service role nuevo, artifact store en bucket `taskflow-artefactos-#####`.
+3. Source stage: conecta el repo de GitHub (`#####/taskflow-aws-#####`, rama `main`) vía GitHub App, con webhook para disparar en cada push.
+4. Build stage: usa AWS CodeBuild, creando un nuevo proyecto (`taskflow-build`) con imagen Amazon Linux estándar y `buildspec.yml` del repo.
+5. Test stage: se omite (`Skip test stage`).
+6. Deploy stage: AWS CodeDeploy, aplicación `taskflow`, grupo `taskflow-dg`, artifact de entrada `BuildArtifact`.
+
+El primer build no corre:
+
+![primer build](./docs/images/first-build.png)
+
+Esto es porque el rol que el asistente le creo a CodeBuild solo sabe leer los buckets que crea AWS. Para arreglarlo hay que ir a la ruta: IAM → Roles → buscar codebuild-taskflow-build-service-role → Add permissions → Attach policies → marcar AmazonS3FullAccess → Add permissions.
+
+Si volvemos al pipeline y le damos click a `Retry stage` en build, veremos que la ejecución fue exitosa. La aplicación taskflow-api esta montada en AWS.
+
+![build exitosa](./docs/images/build-success.png)
+
+## Integrador — el push que despliega
+La aplicación muestra la version 3.0.0, cambiaremos esa version desde el `InfoController` del repo local y haremos un commit y push. De esta forma se mostrará como el pipeline arranca solo despues de un push y ejecuta todo el proceso.
+
+![app version 3.0.0](./docs/images/v1-app.png)
+
+Se modifica la version en el `InfoController` a 3.0.1 y se hace un commit y push.
+
+![InfoController version](./docs/images/info-controller.png)
+
+El pipeline se ejecuta correctamente y ahora la aplicación muestra la version 3.0.1.
+
+![app version 3.0.1](./docs/images/v2-app.png)
+
+Tambien podemos hacer que el pipeline falle para ver como se comporta. Para mostrarlo se modificará `appspec.yml` cambiando la ruta del hook `AfterInstall` de `location: scripts/permisos.sh` a `location: scripts/no-existe.sh` y hacemos commit y push.
+
+El deploy falla.
+
+![fallo deploy](./docs/images/deploy-fail.png)
+
+Para ver mas detalles del error podemos ir a la ruta: CodeDeploy → menú izquierdo Deployments → la fila en rojo (Failed) → pulsa su Deployment Id → Deployment lifecycle events → pulsa View events → click en el evento con el status `Failed` → click en el Error code `ScriptMissing`. En la salida del script se puede ver el mensaje:
+
+```
+"Script does not exist at specified location: /opt/codedeploy-agent/deployment-root/99a36f46-6f01-44a0-80ba-67c694a6d34c/d-UIKEIODOL/deployment-archive/scripts/no-existe.sh"
+```
+
+Que fue justo la ruta que se modificó en el hook `AfterInstall` del archivo `appspec.yml`.
+
+Para arreglar el error simplemente se vuelve a modificar la ruta del hook `AfterInstall` a `location: scripts/permisos.sh`.
+
+El pipeline vuelve a ejecutarse sin problemas.
+
+![hook arreglado](./docs/images/hook-arreglado.png)
+
+## Limpieza
+Despues de terminar el proyecto, se pueden eliminar todos los recursos.
+
+- CodePipeline
+
+![pipeline borrado](./docs/images/deleted-pipeline.png)
+
+- CodeBuild
+
+![codebuild borrado](./docs/images/deleted-build.png)
+
+- CodeDeploy
+
+![codedeploy borrado](./docs/images/deleted-app.png)
+
+- DynamoDB
+
+![dynamodb borrado](./docs/images/deleted-dynamodb.png)
+
+- EC2
+
+![ec2 borrado](./docs/images/terminated-ec2.png)
+
+- S3
+
+![s3 borrado](./docs/images/deleted-s3.png)
+
+- IAM Roles
+
+![roles borrados](./docs/images/deleted-roles.png)
+
+- IAM Users Access Keys
+
+![access keys borrados](./docs/images/deleted-access-keys.png)
+
+- Key Pairs
+
+![key pairs borrados](./docs/images/deleted-keypairs.png)
+
+- CodePipeline connections
+
+![connections borrados](./docs/images/deleted-connections.png)
